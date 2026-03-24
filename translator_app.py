@@ -92,7 +92,7 @@ st.caption("結合自定義術語表與 Gemini Pro 的高質量翻譯工具")
 with st.sidebar:
     st.header("設定")
     api_key = st.text_input("輸入 Gemini API Key", type="password")
-    selected_model = st.selectbox("模型選擇", ["gemini-2.5-pro", "gemini-2.5-flash"], index=0)
+    selected_model = st.selectbox("模型選擇", ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-3-flash-preview"], index=0)
     temp = st.slider("創意度 (Temperature)", 0.0, 1.0, 0.5)
     
     st.divider()
