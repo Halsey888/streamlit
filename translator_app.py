@@ -123,7 +123,7 @@ with st.sidebar:
     temp = st.slider("創意度 (Temperature)", 0.0, 1.0, 0.5)
     
     st.divider()
-    glossary_input = st.text_area("術語表設定 (格式: -韓文: 中文)", height=300, value="""- 설랑: 雪琅\n- 알론: 亞隆\n- 에반: 艾凡""")
+    st.text_area("術語表設定", height=300, value="- 설랑: 雪琅", key="glossary_input")
 
 col1, col2 = st.columns(2)
 
