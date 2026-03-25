@@ -121,3 +121,4 @@ if st.button("開始翻譯", type="primary"):
                 st.subheader("翻譯結果")
                 st.text_area("完成文本", value=final_result, height=500)
                 st.download_button("下載翻譯結果", final_result, file_name="translated.txt")
+st.text_area("完成文本", value=final_result, height=500)
