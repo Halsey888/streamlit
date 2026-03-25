@@ -85,8 +85,32 @@ def translate_text(text_to_translate, api_key, model_name="gemini-2.5-pro", temp
 
 # --- App UI 介面 ---
 st.set_page_config(page_title="韓文小說術語翻譯器", layout="wide")
+
+# 1. 確保 session_state 存在
 if 'final_result' not in st.session_state:
     st.session_state.final_result = ""
+
+# 2. 定義一個「點擊後執行」的函式，這會解決你說的同步速度問題
+def handle_translation():
+    # 這裡直接從 st.session_state 抓取輸入的值
+    input_text = st.session_state.source_input
+    key = st.session_state.api_key_input
+    glossary = st.session_state.glossary_input
+    
+    if not key:
+        st.error("請先輸入 API Key！")
+        return
+    if not input_text:
+        st.warning("請貼上要翻譯的文本。")
+        return
+
+    # 執行翻譯流程
+    pre_processed, info = apply_glossary(input_text, glossary)
+    result = translate_text(pre_processed, key, selected_model, temp, info)
+    
+    # 翻譯完畢後，將結果存入 session_state
+    # 由於這是 callback，Streamlit 會在執行完這行後，自動以最新的值重新渲染整個頁面
+    st.session_state.final_result = result
 
 st.title("🇰🇷 ⮕ 🇹🇼 韓文小說專業翻譯 App")
 st.caption("結合自定義術語表與 Gemini Pro 的高質量翻譯工具")
@@ -104,28 +128,16 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("原始韓文文本")
-    source_text = st.text_area("請貼上韓文原文...", height=500)
+    # 給予 key，讓輸入內容自動同步到 session_state
+    st.text_area("請貼上韓文原文...", height=500, key="source_input")
 
-if st.button("開始翻譯", type="primary"):
-    if not api_key:
-        st.error("請先在左側輸入 API Key！")
-    elif not source_text:
-        st.warning("請貼上要翻譯的文本。")
-    else:
-        with st.spinner("正在進行術語替換與 AI 翻譯..."):
-            # Step 1: 預處理術語
-            pre_processed = apply_glossary(source_text, glossary_input)
-            
-            # Step 2: 進行 AI 翻譯並存入 session_state
-            result = translate_text(pre_processed, api_key, selected_model, temp)
-            st.session_state.final_result = result
-            
-            # Step 3: 重要！強制重整頁面，讓下方的 text_area 顯示新內容
-            st.rerun()
+    # 重點：使用 on_click 呼叫 handle_translation
+    # 這會保證「執行完翻譯」後，才去更新右邊的 UI，不會有太快抓不到的問題
+    st.button("開始翻譯", type="primary", on_click=handle_translation)
 
-# 顯示區域永遠在按鈕外面，確保重整後能抓到 session_state
 with col2:
     st.subheader("翻譯結果")
+    # 直接綁定 session_state.final_result
     st.text_area(
         "完成文本", 
         value=st.session_state.final_result, 
@@ -134,8 +146,4 @@ with col2:
     )
     
     if st.session_state.final_result:
-        st.download_button(
-            "下載翻譯結果", 
-            st.session_state.final_result, 
-            file_name="translated.txt"
-        )
+        st.download_button("下載翻譯結果", st.session_state.final_result, file_name="translated.txt")
