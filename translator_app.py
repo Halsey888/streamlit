@@ -84,6 +84,8 @@ def translate_text(text_to_translate, api_key, model_name="gemini-2.5-pro", temp
         return f"翻譯失敗：{e}"
 
 # --- App UI 介面 ---
+if 'final_result' not in st.session_state:
+    st.session_state.final_result = ""
 st.set_page_config(page_title="韓文小說術語翻譯器", layout="wide")
 
 st.title("🇰🇷 ⮕ 🇹🇼 韓文小說專業翻譯 App")
@@ -114,11 +116,23 @@ if st.button("開始翻譯", type="primary"):
             # Step 1: 預處理術語
             pre_processed = apply_glossary(source_text, glossary_input)
             
-            # Step 2: 進行 AI 翻譯
-            final_result = translate_text(pre_processed, api_key, selected_model, temp)
+            # 將結果存入 session_state
+            st.session_state.final_result = translate_text(pre_processed, api_key, selected_model, temp)
             
-            with col2:
-                st.subheader("翻譯結果")
-                st.text_area("完成文本", value=final_result, height=500)
-                st.download_button("下載翻譯結果", final_result, file_name="translated.txt")
-st.text_area("完成文本", value=final_result, height=500)
+            # 將顯示邏輯移出按鈕判斷式之外
+with col2:
+    st.subheader("翻譯結果")
+    # 使用 session_state 中的值填充內容
+    st.text_area(
+        "完成文本", 
+        value=st.session_state.final_result, 
+        height=500, 
+        key="output_area" # 加上 key 確保組件穩定
+    )
+    
+    if st.session_state.final_result:
+        st.download_button(
+            "下載翻譯結果", 
+            st.session_state.final_result, 
+            file_name="translated.txt"
+        )
